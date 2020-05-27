@@ -1,5 +1,6 @@
 import numpy as np
-
+from scipy import stats
+import math
 
 class KMeans():
     """
@@ -15,6 +16,7 @@ class KMeans():
 
         self.k = k
         self.max_iter = max_iter
+        self.centers = None
 
     def init_center(self, x):
         """
@@ -23,11 +25,13 @@ class KMeans():
         :return: updates the self.centers
         """
 
-        self.centers = np.zeros((self.k, x.shape[1]))
-
         ################################
         #      YOUR CODE GOES HERE     #
         ################################
+
+        self.centers = np.zeros((self.k, x.shape[1]))
+        indices = np.random.choice(np.arange(x.shape[0]), self.k, replace=False)
+        self.centers = x[indices]
 
     def revise_centers(self, x, labels):
         """
@@ -47,10 +51,27 @@ class KMeans():
         :param x: input of (n, m)
         :return: labels of (n,). Each labels[i] is the cluster index for sample x[i]
         """
-        labels = np.zeros((x.shape[0]), dtype=int)
         ##################################
         #      YOUR CODE GOES HERE       #
         ##################################
+        labels = np.zeros((x.shape[0]), dtype=int)
+        values = np.zeros((x.shape[0], 2))
+        values[:, 1] = math.inf
+
+        for i in range(self.k):
+            center = self.centers[i]
+            new_vals = (x - center) ** 2
+            new_vals = np.sum(new_vals, axis=1)
+            new_vals = np.sqrt(new_vals)
+            np.reshape(new_vals, (new_vals.shape[0], 1))
+            new_vals = np.vstack((np.ones(new_vals.shape[0]) * i, new_vals)).T
+            values[:, 0] = np.where(values[:, 1] > new_vals[:, 1], new_vals[:, 0], values[:, 0])
+            values[:, 1] = np.where(values[:, 1] > new_vals[:, 1], new_vals[:, 1], values[:, 1])
+
+        labels = values[:, 0]
+        labels = labels.astype('int')
+
+
         return labels
 
     def get_sse(self, x, labels):
@@ -60,12 +81,14 @@ class KMeans():
         :param labels: label of (n,)
         :return: float scalar of sse
         """
-
         ##################################
         #      YOUR CODE GOES HERE       #
         ##################################
-
         sse = 0.
+        for i in range(x.shape[0]):
+            err = np.linalg.norm(x[i] - self.centers[labels[i]])
+            sse += err ** 2
+
         return sse
 
     def get_purity(self, x, y):
@@ -75,12 +98,34 @@ class KMeans():
         :param y: the ground truth class labels
         :return:
         """
-        labels = self.predict(x)
-        purity = 0
         ##################################
         #      YOUR CODE GOES HERE       #
         ##################################
+        labels = self.predict(x)
+        correct = 0
+        for i in range(self.k):
+            predict_k_at = self.get_array_idxs(labels, i)
+            y_preds = y[predict_k_at]
+            y_list = y_preds.tolist()
+            max_class = max(set(y_list), key=y_list.count)
+            correct += y_list.count(max_class)
+
+        purity = correct / y.shape[0]
+
         return purity
+
+    @staticmethod
+    def get_array_idxs(a, val):
+        """
+        this function returns an np array of indexes where a == val.
+        :param a: input data of (n)
+        :return: indexes where a[idx] == val
+        """
+        b = a == val
+        r = np.array(range(len(b)))
+
+        return r[b]
+
 
     def fit(self, x):
         """
