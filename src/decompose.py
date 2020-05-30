@@ -68,6 +68,10 @@ class PCA():
         ########################################
         covariance = PCA.cov(x)
         val, vec = PCA.eig(covariance)
+        
+        vec = vec[val.argsort()[::-1]]
+        val = val[val.argsort()[::-1]]
+
         k=0
         self.eig_vals = np.delete(val, np.s_[k:561])
         self.eig_vecs = np.delete(vec, np.s_[k:561], axis=1)
