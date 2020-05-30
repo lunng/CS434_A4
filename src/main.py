@@ -84,6 +84,28 @@ def visualize(x_train, y_train):
     ##################################
 
 
+def apply_kmeans_avg(x_train, y_train, kmeans_max_iter, k, iterations=5):
+    train_sses_vs_iter = None
+    sse = 0
+    purity = 0
+    print("")
+    for step in range(iterations):
+        print("On step ", step + 1, "of", iterations, "for k =", k)
+        kmeans = KMeans(k, kmeans_max_iter)
+        sse_vs_iter_loop = np.array(kmeans.fit(x_train))
+
+        # initialize the train sse array
+        if train_sses_vs_iter is None:
+            train_sses_vs_iter = np.zeros(len(sse_vs_iter_loop))
+
+        train_sses_vs_iter += sse_vs_iter_loop
+
+        purity += kmeans.get_purity(x_train, y_train)
+        sse += sse_vs_iter_loop.min()
+
+    return (train_sses_vs_iter/iterations).tolist(), sse/iterations, purity/iterations
+
+
 def apply_kmeans(do_pca, x_train, y_train, kmeans_max_iter, kmeans_max_k):
     print('kmeans\n')
     train_sses_vs_iter = []
@@ -94,22 +116,49 @@ def apply_kmeans(do_pca, x_train, y_train, kmeans_max_iter, kmeans_max_k):
     #      YOUR CODE GOES HERE       #
     ##################################
 
-    start = time.time()
-    for k in range(1, kmeans_max_k):
-        print("On step k =", k, "of", kmeans_max_k, "\telapsed time: %.2f" % (time.time() - start), "s")
-        kmeans = KMeans(k, kmeans_max_iter)
-        sse_vs_iter = kmeans.fit(x_train)
-        train_sses_vs_iter.append(sse_vs_iter)
-        train_purities_vs_k.append(kmeans.get_purity(x_train, y_train))
-        train_sses_vs_k.append(min(sse_vs_iter))
+    ###################################################################
+    # Plot the average (over 5 runs) of SSE versus iterations for k = 6
+    ###################################################################
 
-    plot_y_vs_x_list(train_sses_vs_iter, x_label='iter', y_label='sse',
-                     save_path='plot_sse_vs_k_subplots_%d'%do_pca)
+    train_sses_vs_iter, _, _ = apply_kmeans_avg(x_train, y_train, kmeans_max_iter, k=6, iterations=5)
+    plot_y_vs_x(train_sses_vs_iter, x_label='iterations', y_label='sse',
+                save_path='plot_sse_vs_iter_k_6_%d' % do_pca)
+
+    ###################################################################
+    # Plot the average (over 5 runs) of the SSE versus k for k = 1...10
+    # Plot the average (over 5 runs) of  purity versus k for k = 1...10
+    ###################################################################
+
+    for k in range(1, 10):
+        _, sse, purity = apply_kmeans_avg(x_train, y_train, kmeans_max_iter, k=k, iterations=5)
+        train_sses_vs_k.append(sse)
+        train_purities_vs_k.append(purity)
+
     plot_y_vs_x(train_sses_vs_k, x_label='k', y_label='sse',
-                save_path='plot_sse_vs_k_%d'%do_pca)
-    plot_y_vs_x(train_purities_vs_k, x_label='k', y_label='purities',
-                save_path='plot_purity_vs_k_%d'%do_pca)
+                save_path='plot_sse_vs_k_avg_%d' % do_pca)
 
+    plot_y_vs_x(train_purities_vs_k, x_label='k', y_label='purity',
+                save_path='plot_purity_vs_k_avg_%d' % do_pca)
+
+
+    # train_sses_vs_iter = []
+    # train_sses_vs_k = []
+    # train_purities_vs_k = []
+    # start = time.time()
+    # for k in range(1, kmeans_max_k):
+    #     print("On step k =", k, "of", kmeans_max_k, "\telapsed time: %.2f" % (time.time() - start), "s")
+    #     kmeans = KMeans(k, kmeans_max_iter)
+    #     sse_vs_iter = kmeans.fit(x_train)
+    #     train_sses_vs_iter.append(sse_vs_iter)
+    #     train_purities_vs_k.append(kmeans.get_purity(x_train, y_train))
+    #     train_sses_vs_k.append(min(sse_vs_iter))
+    #
+    # plot_y_vs_x_list(train_sses_vs_iter, x_label='iter', y_label='sse',
+    #                  save_path='plot_sse_vs_k_subplots_%d' % do_pca)
+    # plot_y_vs_x(train_sses_vs_k, x_label='k', y_label='sse',
+    #             save_path='plot_sse_vs_k_%d' % do_pca)
+    # plot_y_vs_x(train_purities_vs_k, x_label='k', y_label='purities',
+    #             save_path='plot_purity_vs_k_%d' % do_pca)
 
 
 if __name__ == '__main__':
