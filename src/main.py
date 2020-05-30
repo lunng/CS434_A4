@@ -82,7 +82,27 @@ def visualize(x_train, y_train):
     ##################################
     #      YOUR CODE GOES HERE       #
     ##################################
+    fld = os.path.join(args.root_dir, 'plot_principal_components')
+    if not os.path.exists((fld)):
+        os.mkdir(fld)
 
+    pc1 = x_train[:,0]
+    pc2 = x_train[:,1]
+    cdict = {1: 'red', 2: 'blue', 3: 'green', 4: 'orange', 5: 'black', 6: 'purple'}
+
+    fig, ax = plt.subplots()
+    fig.suptitle('2 Component PCA', fontsize=20)
+    plt.xlabel('Principal Component 1', fontsize=16)
+    plt.ylabel('Principal Component 2', fontsize=16)
+    gs = gridspec.GridSpec(1, 1, figure=fig)
+    
+    for g in np.unique(y_train):
+        ix = np.where(y_train == g)
+        ax.scatter(pc1[ix], pc2[ix], c = cdict[g], label = g, s = 5)
+    ax.legend()
+    
+    fig.savefig(os.path.join(fld, 'plot.png'))
+    print('Saved at : %s' % fld)
 
 def apply_kmeans_avg(x_train, y_train, kmeans_max_iter, k, iterations=5):
     train_sses_vs_iter = None
