@@ -129,7 +129,7 @@ def apply_kmeans(do_pca, x_train, y_train, kmeans_max_iter, kmeans_max_k):
     # Plot the average (over 5 runs) of  purity versus k for k = 1...10
     ###################################################################
 
-    for k in range(1, 10):
+    for k in range(1, 11):
         _, sse, purity = apply_kmeans_avg(x_train, y_train, kmeans_max_iter, k=k, iterations=5)
         train_sses_vs_k.append(sse)
         train_purities_vs_k.append(purity)
