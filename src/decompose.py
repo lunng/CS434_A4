@@ -66,6 +66,15 @@ class PCA():
         ########################################
         #       YOUR CODE GOES HERE            #
         ########################################
+        covariance = PCA.cov(x)
+        val, vec = PCA.eig(covariance)
+        k=0
+        self.eig_vals = np.delete(val, np.s_[k:561])
+        self.eig_vecs = np.delete(vec, np.s_[k:561], axis=1)
+        while(np.sum(self.eig_vals) < 0.9*np.sum(val)):
+            k = k+1
+            self.eig_vals = np.delete(val, np.s_[k:561])
+            self.eig_vecs = np.delete(vec, np.s_[k:561], axis=1)
 
 
     def transform(self, x):
