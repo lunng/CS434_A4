@@ -79,6 +79,9 @@ class PCA():
             k = k+1
             self.eig_vals = np.delete(val, np.s_[k:561])
             self.eig_vecs = np.delete(vec, np.s_[k:561], axis=1)
+        
+        self.eig_vals = np.delete(val, np.s_[k-1:561])
+        self.eig_vecs = np.delete(vec, np.s_[k-1:561], axis=1)
 
 
     def transform(self, x):
